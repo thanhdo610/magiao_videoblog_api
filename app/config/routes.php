@@ -1,13 +1,20 @@
 <?php
 
-$usersCollection = new \Phalcon\Mvc\Micro\Collection();
-$usersCollection->setHandler('\App\Controllers\VideosController', true);
-$usersCollection->setPrefix('/videos');
-// $usersCollection->post('/add', 'addAction');
-// $usersCollection->get('/list', 'getUserListAction');
-// $usersCollection->put('/{userId:[1-9][0-9]*}', 'updateUserAction');
-// $usersCollection->delete('/{userId:[1-9][0-9]*}', 'deleteUserAction');
-$app->mount($usersCollection);
+$videosCollection = new \Phalcon\Mvc\Micro\Collection();
+$videosCollection->setHandler('\App\Controllers\VideosController', true);
+$videosCollection->setPrefix('/videos');
+
+// GET METHOD    : Get video infomation
+$videosCollection->get('/', 'getVideoListAction');
+$videosCollection->get('/{id}', 'getVideoByIdAction');
+
+// PATCH METHOD  : Update if id exict, add new if not
+$videosCollection->post('/{id}', 'patchVideoAction');
+
+// DELETE METHOD : Delete video
+$videosCollection->delete('/{id}', 'deleteVideoAction');
+
+$app->mount($videosCollection);
 
 // not found URLs
 $app->notFound(

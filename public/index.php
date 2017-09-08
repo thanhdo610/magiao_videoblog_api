@@ -9,6 +9,8 @@ try {
 	// Autoloading classes
 	require __DIR__ . '/../app/config/loader.php';
 
+	require __DIR__ . '/../log/logger.php';
+
 	// Initializing DI container
 	/** @var \Phalcon\DI\FactoryDefault $di */
 	$di = require __DIR__ . '/../app/config/di.php';
@@ -22,9 +24,20 @@ try {
 	// Setting up routing
 	require __DIR__ . '/../app/config/routes.php';
 
+	$logger->info(sprintf("CLIENT --- %s
+										ROUTE --- %s
+										METHOD --- %s
+										HTTP REF --- %s",
+        $app->request->getClientAddress(),
+        $app->request->getURI(),
+        $app->request->getMethod(),
+        $app->request->getHTTPReferer()
+    ));
+
 	// Making the correct answer after executing
 	$app->after(
 		function () use ($app) {
+
 			// Getting the return value of method
 			$return = $app->getReturnedValue();
 
@@ -47,11 +60,13 @@ try {
 	// Processing request
 	$app->handle();
 } catch (AbstractHttpException $e) {
+	$logger->error($e->getCode() . ' : ' . $e->getMessage());
 	$response = $app->response;
 	$response->setStatusCode($e->getCode(), $e->getMessage());
 	$response->setJsonContent($e->getAppError());
 	$response->send();
 } catch (\Phalcon\Http\Request\Exception $e) {
+	$logger->error('400 Bad Request : ' . $e->getMessage());
 	$app->response->setStatusCode(400, 'Bad request')
 	              ->setJsonContent([
 		              AbstractHttpException::KEY_CODE    => 400,
@@ -59,6 +74,7 @@ try {
 	              ])
 	              ->send();
 } catch (\Exception $e) {
+	$logger->critical($e->getMessage());
 	// Standard error format
 	$result = [
 		AbstractHttpException::KEY_CODE    => 500,

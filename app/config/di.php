@@ -27,10 +27,10 @@ $di->set(
     function () use ($config){
         return new PdoMysql(
             [
-				"host"     => $config->database->host,
-				"username" => $config->database->username,
-				"password" => $config->database->password,
-				"dbname"   => $config->database->dbname,
+                "host"     => $config->database->host,
+                "username" => $config->database->username,
+                "password" => $config->database->password,
+                "dbname"   => $config->database->dbname,
             ]
         );
     }
