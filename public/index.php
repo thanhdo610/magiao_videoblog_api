@@ -9,7 +9,7 @@ try {
 	// Autoloading classes
 	require __DIR__ . '/../app/config/loader.php';
 
-	require __DIR__ . '/../log/logger.php';
+	require __DIR__ . '/../app/config/logger.php';
 
 	// Initializing DI container
 	/** @var \Phalcon\DI\FactoryDefault $di */
