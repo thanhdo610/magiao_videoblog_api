@@ -112,6 +112,8 @@ class VideosService extends AbstractService{
 
 			if (!$result) {
 				throw new ServiceException('Unable to delete video', self::ERROR_UNABLE_DELETE_VIDEO);
+			} else {
+				return array("status"=>"Video is deleted forever");
 			}
 
 		} catch (\PDOException $e) {
@@ -133,6 +135,8 @@ class VideosService extends AbstractService{
 
 			if (!$result) {
 				throw new ServiceException('Unable to delete video', self::ERROR_UNABLE_DELETE_VIDEO);
+			} else {
+				return array("status"=>"Video is deleted");
 			}
 
 		} catch (\PDOException $e) {
