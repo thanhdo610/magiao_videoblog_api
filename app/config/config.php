@@ -7,8 +7,8 @@ $config = new Config(
         'database' => [
             'adapter'  => 'Mysql',
             'host'     => '127.0.0.1',
-            'username' => 'thanhdo',
-            'password' => '123456',
+            'username' => 'magiao',
+            'password' => 'Magiaosql123!@#',
             'dbname'   => 'blogging',
         ],
 
