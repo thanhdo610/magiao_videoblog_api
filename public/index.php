@@ -25,9 +25,9 @@ try {
 	require __DIR__ . '/../app/config/routes.php';
 
 	$logger->info(sprintf("CLIENT --- %s
-							ROUTE --- %s
-							METHOD --- %s
-							HTTP REF --- %s",
+					ROUTE --- %s
+					METHOD --- %s
+					HTTP REF --- %s",
         $app->request->getClientAddress(),
         $app->request->getURI(),
         $app->request->getMethod(),
