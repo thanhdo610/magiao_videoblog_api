@@ -236,7 +236,7 @@ class VideosService extends AbstractService{
 			$parameters['conditions'] = implode(" AND ", $conditions);
 			$parameters['bind'] = $bind;
 
-			$parameters['columns'] = (is_null($searchParam['_fetch_all'])) ? "name, source_video, category, tag, description, source_video_id" : "name, source_video, category, tag, description, source_video_id, _id, _created_at, _updated_at";
+			$parameters['columns'] = (is_null($searchParam['_fetch_all'])) ? "name, source_video, category, tag, description, source_video_id" : "name, source_video, category, tag, description, source_video_id, status, _id, _created_at, _updated_at";
 
 			$parameters['order'] = '_updated_at DESC';
 

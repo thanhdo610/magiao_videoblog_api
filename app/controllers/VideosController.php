@@ -33,7 +33,7 @@ class VideosController extends AbstractController
         $data['tag'] = $this->request->getQuery('tag', 'alphanum');
         $data['description'] = $this->request->getQuery('description', 'string');
         $data['source_video_id'] = $this->request->getQuery('source_video_id', 'alphanum');
-        $data['status'] = $this->request->getQuery('status', 'int');
+        $data['status'] = $this->request->getQuery('status', 'int', 20000, true);
         $data['_all_status'] = $this->request->getQuery('_all_status', 'int', 1, true);
         $data['_page'] = $this->request->getQuery('_page', 'int', 1, true);
         $data['_size'] = $this->request->getQuery('_size', 'int', 10, true);
@@ -93,7 +93,7 @@ class VideosController extends AbstractController
         $data['description'] = $this->request->getPost('description', 'string');
         $data['source_video_id'] = $this->request->getPost('source_video_id', 'alphanum');
         $data['source_full_url'] = $this->request->getPost('source_full_url', 'alphanum');
-        $data['status'] = $this->request->getPost('status', 'int');
+        $data['status'] = $this->request->getPost('status', 'int', 20000, true);
 
         try {
             return $videosService->saveVideo($id, $data);
