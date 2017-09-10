@@ -1,4 +1,2 @@
-/cache/
-/config/development/
-/log/
+/log/*
 /app/config/config.php
