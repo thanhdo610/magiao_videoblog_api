@@ -86,7 +86,6 @@ class VideosService extends AbstractService{
 			 //    }
 				throw new ServiceException('Unable to save video', self::ERROR_UNABLE_CREATE_VIDEO);
 			} else {
-				$logger->info('This is an info message');
 				return [self::getVideoById($_id)];
 			}
 
@@ -154,7 +153,8 @@ class VideosService extends AbstractService{
 					'conditions' => '_id = :_id:',
 					'bind'       => [
 						'_id' => $_id
-					]
+					],
+					'columns'	=> 'name, source_video, category, tag, description, source_video_id',
 				]
 			);
 
