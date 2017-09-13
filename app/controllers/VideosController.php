@@ -28,13 +28,14 @@ class VideosController extends AbstractController
         $data = [];
 
         $data['name'] = $this->request->getQuery('name', 'string');
-        $data['source_video'] = $this->request->getQuery('source_video', 'alphanum');
-        $data['category'] = $this->request->getQuery('category', 'alphanum');
-        $data['tag'] = $this->request->getQuery('tag', 'alphanum');
+        $data['source_video'] = $this->request->getQuery('source_video', 'string');
+        $data['category'] = $this->request->getQuery('category', 'string');
+        $data['tag'] = $this->request->getQuery('tag', 'string');
         $data['description'] = $this->request->getQuery('description', 'string');
         $data['source_video_id'] = $this->request->getQuery('source_video_id', 'alphanum');
+        $data['source_full_url'] = $this->request->getQuery('source_full_url', 'string');
         $data['status'] = $this->request->getQuery('status', 'int', 20000, true);
-        $data['_all_status'] = $this->request->getQuery('_all_status', 'int', 1, true);
+        $data['_all_status'] = $this->request->getQuery('_all_status', 'int');
         $data['_page'] = $this->request->getQuery('_page', 'int', 1, true);
         $data['_size'] = $this->request->getQuery('_size', 'int', 10, true);
         $data['_fetch_all'] = $this->request->getQuery('_fetch_all', 'int');
@@ -52,10 +53,14 @@ class VideosController extends AbstractController
 	{
 		$videosService = new VideosService();
 		$errors = [];
+        $data = [];
 
 	    if (!ctype_alnum($id)) {
             $errors['id'] = 'Id must contain only text and number';
         }
+
+        $data['_all_status'] = $this->request->getQuery('_all_status', 'int');
+        $data['_fetch_all'] = $this->request->getQuery('_fetch_all', 'int');
 
         if ($errors) {
             $exception = new Http400Exception(_('Input parameters validation error'), self::ERROR_INVALID_REQUEST);
@@ -63,8 +68,8 @@ class VideosController extends AbstractController
         }
 
 		try {
-            $video = $videosService->getVideoById($id);
-            return [$video];
+            $video = $videosService->getVideoById($id, $data);
+            return $video;
         } catch (ServiceException $e) {
             throw new Http500Exception(_('Internal Server Error'), $e->getCode(), $e);
         }
@@ -87,12 +92,12 @@ class VideosController extends AbstractController
         }
 
         $data['name'] = $this->request->getPost('name', 'string');
-        $data['source_video'] = $this->request->getPost('source_video', 'alphanum');
-        $data['category'] = $this->request->getPost('category', 'alphanum');
-        $data['tag'] = $this->request->getPost('tag', 'alphanum');
+        $data['source_video'] = $this->request->getPost('source_video', 'string');
+        $data['category'] = $this->request->getPost('category', 'string');
+        $data['tag'] = $this->request->getPost('tag', 'string');
         $data['description'] = $this->request->getPost('description', 'string');
         $data['source_video_id'] = $this->request->getPost('source_video_id', 'alphanum');
-        $data['source_full_url'] = $this->request->getPost('source_full_url', 'alphanum');
+        $data['source_full_url'] = $this->request->getPost('source_full_url', 'string');
         $data['status'] = $this->request->getPost('status', 'int', 20000, true);
 
         try {
@@ -123,7 +128,7 @@ class VideosController extends AbstractController
         }
 
 		try {
-            $videosService->deleteVideo($id);
+            return $videosService->deleteVideoForever($id);
         } catch (ServiceException $e) {
             switch ($e->getCode()) {
                 case VideosService::ERROR_UNABLE_DELETE_VIDEO:
