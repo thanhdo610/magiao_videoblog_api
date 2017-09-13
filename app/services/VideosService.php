@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services;
 
 use App\Models\Videos;
@@ -16,7 +15,6 @@ use App\Models\Videos;
 // _id 					: design as md5(source_video . source_video_id)
 // _created_at 			: added time
 // _updated_at 			: updated time
-// _pos 				: using timestamp of added time to sort
 
 /**
  * Business-logic for videos
@@ -31,7 +29,7 @@ class VideosService extends AbstractService{
 	const STATUS_PENDING_VIDEO = 20001;
 
 	/** Video NORMAL state */
-	const STATUS_DELETED_VIDEO = 20002;
+	const STATUS_DEACTIVED_VIDEO = 20002;
 
 	/** Unable to create video */
 	const ERROR_UNABLE_CREATE_VIDEO = 11001;
@@ -86,7 +84,7 @@ class VideosService extends AbstractService{
 			 //    }
 				throw new ServiceException('Unable to save video', self::ERROR_UNABLE_CREATE_VIDEO);
 			} else {
-				return [self::getVideoById($_id)];
+				return self::getVideoById($_id);
 			}
 
 		} catch (\PDOException $e) {
@@ -102,7 +100,14 @@ class VideosService extends AbstractService{
 	public function deleteVideoForever($_id)
 	{
 		try {
-			$video = self::getVideoById($_id);
+			$video = Videos::findFirst(
+				[
+					'conditions' => '_id = :_id:',
+					'bind'       => [
+						'_id' => $_id
+					],
+				]
+			);
 
 			if (!$video) {
 				throw new ServiceException("Video not found", self::ERROR_VIDEO_NOT_FOUND);
@@ -113,7 +118,7 @@ class VideosService extends AbstractService{
 			if (!$result) {
 				throw new ServiceException('Unable to delete video', self::ERROR_UNABLE_DELETE_VIDEO);
 			} else {
-				return array("status"=>"Video is deleted forever");
+				return array("code"=>200, "status"=>"Video is deleted forever");
 			}
 
 		} catch (\PDOException $e) {
@@ -124,19 +129,26 @@ class VideosService extends AbstractService{
 	public function deleteVideo($_id)
 	{
 		try {
-			$video = self::getVideoById($_id);
+			$video = Videos::findFirst(
+				[
+					'conditions' => '_id = :_id:',
+					'bind'       => [
+						'_id' => $_id
+					],
+				]
+			);
 
 			if (!$video) {
 				throw new ServiceException('Video not found', self::ERROR_VIDEO_NOT_FOUND);
 			}
 
-			$result = $video->setStatus(self::STATUS_DELETED_VIDEO)
+			$result = $video->setStatus(self::STATUS_DEACTIVED_VIDEO)
 				->update();
 
 			if (!$result) {
 				throw new ServiceException('Unable to delete video', self::ERROR_UNABLE_DELETE_VIDEO);
 			} else {
-				return array("status"=>"Video is deleted");
+				return self::getVideoList();
 			}
 
 		} catch (\PDOException $e) {
@@ -149,24 +161,32 @@ class VideosService extends AbstractService{
 	 *
 	 * @param string $_id
 	 */
-	public function getVideoById($_id)
+	public function getVideoById($_id, array $searchParam = null)
 	{
 		try {
-			$video = Videos::findFirst(
-				[
-					'conditions' => '_id = :_id:',
-					'bind'       => [
-						'_id' => $_id
-					],
-					'columns'	=> 'name, source_video, category, tag, description, source_video_id',
-				]
-			);
+			$parameters = [];
 
-			if (!$video) {
-				return null;
+			$conditions = $bind = [];
+
+			$conditions[] = "_id = :_id:";
+			$bind['_id'] = $_id;
+
+			if (!isset($searchParam['_all_status'])){
+				$conditions[] = "status = :status:";
+				$bind['status'] = self::STATUS_NORMAL_VIDEO;
 			}
 
-			return $video;
+			$parameters['conditions'] = implode(" AND ", $conditions);
+			$parameters['bind'] = $bind;
+			$parameters['columns'] = (is_null($searchParam['_fetch_all'])) ? "name, source_video, category, tag, description, source_video_id, source_full_url" : "name, source_video, category, tag, description, source_video_id, source_full_url, status, _id, _created_at, _updated_at";
+
+			$video = Videos::findFirst($parameters);
+
+			if (!$video) {
+				return [];
+			}
+
+			return [$video];
 
 		} catch (\PDOException $e) {
 			throw new ServiceException($e->getMessage(), $e->getCode(), $e);
@@ -229,18 +249,25 @@ class VideosService extends AbstractService{
 				$bind['source_video_id'] = $searchParam['source_video_id'];
 			}
 
-			if (!(is_null($searchParam['status']))){
-				$conditions[] = "status = :status:";
-				$bind['status'] = $searchParam['status'];
-			} else {
-				$conditions[] = "status = :status:";
-				$bind['status'] = self::STATUS_NORMAL_VIDEO;
+			if (!(is_null($searchParam['source_full_url']))){
+				$conditions[] = "source_full_url = :source_full_url:";
+				$bind['source_full_url'] = $searchParam['source_full_url'];
+			}
+
+			if (is_null($searchParam['_all_status'])){
+				if (!(is_null($searchParam['status']))){
+					$conditions[] = "status = :status:";
+					$bind['status'] = $searchParam['status'];
+				} else {
+					$conditions[] = "status = :status:";
+					$bind['status'] = self::STATUS_NORMAL_VIDEO;
+				}
 			}
 
 			$parameters['conditions'] = implode(" AND ", $conditions);
 			$parameters['bind'] = $bind;
 
-			$parameters['columns'] = (is_null($searchParam['_fetch_all'])) ? "name, source_video, category, tag, description, source_video_id" : "name, source_video, category, tag, description, source_video_id, status, _id, _created_at, _updated_at";
+			$parameters['columns'] = (is_null($searchParam['_fetch_all'])) ? "name, source_video, category, tag, description, source_video_id, source_full_url" : "name, source_video, category, tag, description, source_video_id, source_full_url, status, _id, _created_at, _updated_at";
 
 			$parameters['order'] = '_updated_at DESC';
 
