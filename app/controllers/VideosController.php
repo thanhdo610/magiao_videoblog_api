@@ -34,6 +34,9 @@ class VideosController extends AbstractController
         $data['description'] = $this->request->getQuery('description', 'string');
         $data['source_video_id'] = $this->request->getQuery('source_video_id', 'alphanum');
         $data['source_full_url'] = $this->request->getQuery('source_full_url', 'string');
+        $data['keyword'] = $this->request->getQuery('keyword', 'string');
+        $data['lengthgreaterthan'] = $this->request->getQuery('lengthgreaterthan', 'int');
+        $data['lengthlessthan'] = $this->request->getQuery('lengthlessthan', 'int');
         $data['status'] = $this->request->getQuery('status', 'int', 20000, true);
         $data['_all_status'] = $this->request->getQuery('_all_status', 'int');
         $data['_page'] = $this->request->getQuery('_page', 'int', 1, true);
@@ -69,14 +72,30 @@ class VideosController extends AbstractController
 
 		try {
             $video = $videosService->getVideoById($id, $data);
-            return $video;
         } catch (ServiceException $e) {
             throw new Http500Exception(_('Internal Server Error'), $e->getCode(), $e);
         }
+        return $video;
 
 	}
 
-	public function patchVideoAction($id)
+    public function getVideoByKeywordAction($keyword)
+    {
+        $videosService = new VideosService();
+        $data = [];
+
+        $data['_all_status'] = $this->request->getQuery('_all_status', 'int');
+        $data['_fetch_all'] = $this->request->getQuery('_fetch_all', 'int');
+
+        try {
+            $videoList = $videosService->getVideoByKeyword($keyword);
+        } catch (ServiceException $e) {
+            throw new Http500Exception(_('Internal Server Error'), $e->getCode(), $e);
+        }
+        return $videoList;
+    }
+
+	public function createVideoAction($id)
 	{
 		$videosService = new VideosService();
         $errors = [];
@@ -98,6 +117,8 @@ class VideosController extends AbstractController
         $data['description'] = $this->request->getPost('description', 'string');
         $data['source_video_id'] = $this->request->getPost('source_video_id', 'alphanum');
         $data['source_full_url'] = $this->request->getPost('source_full_url', 'string');
+        $data['keyword'] = $this->request->getPost('keyword', 'string');
+        $data['length'] = $this->request->getPost('length', 'int');
         $data['status'] = $this->request->getPost('status', 'int', 20000, true);
 
         try {
@@ -105,13 +126,50 @@ class VideosController extends AbstractController
         } catch (ServiceException $e) {
             switch ($e->getCode()) {
                 case VideosService::ERROR_UNABLE_CREATE_VIDEO:
-                case VideosService::ERROR_UNABLE_UPDATE_VIDEO:
                     throw new Http422Exception($e->getMessage(), $e->getCode(), $e);
                 default:
                     throw new Http500Exception(_('Internal Server Error'), $e->getCode(), $e);
             }
         }
 	}
+
+    public function updateVideoAction($id)
+    {
+        $videosService = new VideosService();
+        $errors = [];
+        $data = [];
+
+        if (!ctype_alnum($id)) {
+            $errors['id'] = 'Id must contain only text and number';
+        }
+
+        if ($errors) {
+            $exception = new Http400Exception(_('Input parameters validation error'), self::ERROR_INVALID_REQUEST);
+            throw $exception->addErrorDetails($errors);
+        }
+
+        $data['name'] = $this->request->getPost('name', 'string');
+        $data['source_video'] = $this->request->getPost('source_video', 'string');
+        $data['category'] = $this->request->getPost('category', 'string');
+        $data['tag'] = $this->request->getPost('tag', 'string');
+        $data['description'] = $this->request->getPost('description', 'string');
+        $data['source_video_id'] = $this->request->getPost('source_video_id', 'alphanum');
+        $data['source_full_url'] = $this->request->getPost('source_full_url', 'string');
+        $data['keyword'] = $this->request->getPost('keyword', 'string');
+        $data['length'] = $this->request->getPost('length', 'int');
+        $data['status'] = $this->request->getPost('status', 'int');
+
+        try {
+            return $videosService->updateVideo($id, $data);
+        } catch (ServiceException $e) {
+            switch ($e->getCode()) {
+                case VideosService::ERROR_UNABLE_UPDATE_VIDEO:
+                    throw new Http422Exception($e->getMessage(), $e->getCode(), $e);
+                default:
+                    throw new Http500Exception(_('Internal Server Error'), $e->getCode(), $e);
+            }
+        }
+    }
 
 	public function deleteVideoAction($id)
 	{

@@ -1,5 +1,5 @@
 <?php
-
+// VIDEO ROUTE
 $videosCollection = new \Phalcon\Mvc\Micro\Collection();
 $videosCollection->setHandler('\App\Controllers\VideosController', true);
 $videosCollection->setPrefix('/videos');
@@ -8,8 +8,11 @@ $videosCollection->setPrefix('/videos');
 $videosCollection->get('/', 'getVideoListAction');
 $videosCollection->get('/{id}', 'getVideoByIdAction');
 
+$videosCollection->get('/keyword/{keyword}', 'getVideoByKeywordAction');
+
 // PATCH METHOD  : Update if id exict, add new if not
-$videosCollection->post('/{id}', 'patchVideoAction');
+$videosCollection->post('/create/{id}', 'createVideoAction');
+$videosCollection->post('/update/{id}', 'updateVideoAction');
 
 // DELETE METHOD : Delete video
 $videosCollection->delete('/{id}', 'deleteVideoAction');
