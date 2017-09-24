@@ -1,35 +1,35 @@
 <?php
+
 namespace App\Models;
 
 class Videos extends \Phalcon\Mvc\Model
 {
-    public $db;
 
     /**
      *
      * @var string
-     * @Column(type="string", length=255, nullable=false)
+     * @Column(type="string", length=2083, nullable=false)
      */
     protected $name;
 
     /**
      *
      * @var string
-     * @Column(type="string", length=255, nullable=false)
+     * @Column(type="string", length=2083, nullable=false)
      */
     protected $source_video;
 
     /**
      *
      * @var string
-     * @Column(type="string", length=255, nullable=false)
+     * @Column(type="string", length=2083, nullable=false)
      */
     protected $category;
 
     /**
      *
      * @var string
-     * @Column(type="string", length=255, nullable=false)
+     * @Column(type="string", length=2083, nullable=false)
      */
     protected $tag;
 
@@ -43,14 +43,14 @@ class Videos extends \Phalcon\Mvc\Model
     /**
      *
      * @var string
-     * @Column(type="string", length=255, nullable=false)
+     * @Column(type="string", length=2083, nullable=false)
      */
     protected $source_video_id;
 
     /**
      *
      * @var string
-     * @Column(type="string", length=255, nullable=false)
+     * @Column(type="string", length=2083, nullable=false)
      */
     protected $source_full_url;
 
@@ -60,6 +60,20 @@ class Videos extends \Phalcon\Mvc\Model
      * @Column(type="integer", length=11, nullable=false)
      */
     protected $status;
+
+    /**
+     *
+     * @var string
+     * @Column(type="string", length=2083, nullable=false)
+     */
+    protected $keyword;
+
+    /**
+     *
+     * @var int
+     * @Column(type="int", length=11, nullable=false)
+     */
+    protected $length;
 
     /**
      *
@@ -188,6 +202,32 @@ class Videos extends \Phalcon\Mvc\Model
     }
 
     /**
+     * Method to set the value of field keyword
+     *
+     * @param string $keyword
+     * @return $this
+     */
+    public function setKeyword($keyword)
+    {
+        $this->keyword = $keyword;
+
+        return $this;
+    }
+
+    /**
+     * Method to set the value of field length
+     *
+     * @param string $length
+     * @return $this
+     */
+    public function setLength($length)
+    {
+        $this->length = $length;
+
+        return $this;
+    }
+
+    /**
      * Method to set the value of field _id
      *
      * @param string $_id
@@ -304,6 +344,26 @@ class Videos extends \Phalcon\Mvc\Model
     public function getStatus()
     {
         return $this->status;
+    }
+
+    /**
+     * Returns the value of field keyword
+     *
+     * @return string
+     */
+    public function getKeyword()
+    {
+        return $this->keyword;
+    }
+
+    /**
+     * Returns the value of field length
+     *
+     * @return string
+     */
+    public function getLength()
+    {
+        return $this->length;
     }
 
     /**

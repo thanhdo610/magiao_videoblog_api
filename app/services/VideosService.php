@@ -12,6 +12,8 @@ use App\Models\Videos;
 // source_video_id 		: id of video from main source
 // source_full_url 		: full url of video from main source
 // status 				: video state, NORMAL = 100, PENDING = 101, DELETED = 102. Default is NORMAL
+// keyword 				: video keyword
+// length 				: video length (by second)
 // _id 					: design as md5(source_video . source_video_id)
 // _created_at 			: added time
 // _updated_at 			: updated time
@@ -46,6 +48,15 @@ class VideosService extends AbstractService{
 	/** Unable to delete video */
 	const ERROR_UNABLE_DELETE_VIDEO = 11005;
 
+	/** Video already exists */
+	const ERROR_ALREADY_EXISTS = 11006;
+
+	/** Video not exists */
+	const ERROR_NOT_EXISTS = 11007;
+
+	const FETCH_NOT_ALL_FIELDS = "name, source_video, category, tag, description, source_video_id, source_full_url, keyword, length";
+	const FETCH_ALL_FIELDS = "name, source_video, category, tag, description, source_video_id, source_full_url, keyword, length, status, _id, _created_at, _updated_at";
+
 	/**
 	* Creating a new video
 	*
@@ -63,6 +74,8 @@ class VideosService extends AbstractService{
 			$videoData['description'] 		= (is_null($videoData['description'])) ? "-" : $videoData['description'];
 			$videoData['source_video_id'] 	= (is_null($videoData['source_video_id'])) ? "-" : $videoData['source_video_id'];
 			$videoData['source_full_url'] 	= (is_null($videoData['source_full_url'])) ? "-" : $videoData['source_full_url'];
+			$videoData['keyword'] 			= (is_null($videoData['keyword'])) ? "-" : $videoData['keyword'];
+			$videoData['length'] 			= (is_null($videoData['keyword'])) ? 200 : $videoData['length'];
 			$videoData['status'] 			= (is_null($videoData['status'])) ? self::STATUS_NORMAL_VIDEO : $videoData['status'];
 
 			$result = $video->setId($_id)
@@ -73,16 +86,63 @@ class VideosService extends AbstractService{
 				->setDescription($videoData['description'])
 				->setSourceVideoId($videoData['source_video_id'])
 				->setSourceFullUrl($videoData['source_full_url'])
+				->setKeyword($videoData['keyword'])
+				->setLength($videoData['length'])
 				->setStatus($videoData['status'])
-				->save();
+				->create();
+
+			if (!$result) {
+				throw new ServiceException('Unable to create video', self::ERROR_UNABLE_CREATE_VIDEO);
+			} else {
+				return self::getVideoById($_id);
+			}
+
+		} catch (\PDOException $e) {
+			throw new ServiceException($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+
+	/**
+	* Updating video
+	*
+	* @param array $videoData
+	*/
+	public function updateVideo($_id, array $videoData)
+	{
+		try {
+			$video = Videos::findFirst(
+				[
+					'conditions' => '_id = :_id:',
+					'bind'       => [
+						'_id' => $_id
+					],
+				]
+			);
+
+			if (!$video) {
+				throw new ServiceException("Video not found", self::ERROR_VIDEO_NOT_FOUND);
+			}
+
+			if (!is_null($videoData['name'])) $video->setName($videoData['name']);
+			if (!is_null($videoData['source_video'])) $video->setSourceVideo($videoData['source_video']);
+			if (!is_null($videoData['category'])) $video->setCategory($videoData['category']);
+			if (!is_null($videoData['tag'])) $video->setTag($videoData['tag']);
+			if (!is_null($videoData['description'])) $video->setDescription($videoData['description']);
+			if (!is_null($videoData['source_video_id'])) $video->setSourceVideoId($videoData['source_video_id']);
+			if (!is_null($videoData['source_full_url'])) $video->setSourceFullUrl($videoData['source_full_url']);
+			if (!is_null($videoData['keyword'])) $video->setKeyword($videoData['keyword']);
+			if (!is_null($videoData['length'])) $video->setLength($videoData['length']);
+			if (!is_null($videoData['status'])) $video->setStatus($videoData['status']);
+
+			$result = $video->update();
 
 			if (!$result) {
 				// $messages = $video->getMessages();
 
 			 //    foreach ($messages as $message) {
-			 //        echo $message, "\n";
+			 //        echo $message;
 			 //    }
-				throw new ServiceException('Unable to save video', self::ERROR_UNABLE_CREATE_VIDEO);
+				throw new ServiceException('Unable to update video', self::ERROR_UNABLE_UPDATE_VIDEO);
 			} else {
 				return self::getVideoById($_id);
 			}
@@ -178,7 +238,7 @@ class VideosService extends AbstractService{
 
 			$parameters['conditions'] = implode(" AND ", $conditions);
 			$parameters['bind'] = $bind;
-			$parameters['columns'] = (is_null($searchParam['_fetch_all'])) ? "name, source_video, category, tag, description, source_video_id, source_full_url" : "name, source_video, category, tag, description, source_video_id, source_full_url, status, _id, _created_at, _updated_at";
+			$parameters['columns'] = (is_null($searchParam['_fetch_all'])) ? self::FETCH_NOT_ALL_FIELDS : self::FETCH_ALL_FIELDS;
 
 			$video = Videos::findFirst($parameters);
 
@@ -194,6 +254,38 @@ class VideosService extends AbstractService{
 
 	}
 
+	public function getVideoByKeyword($keyword, array $searchParam = null)
+	{
+		try {
+			$parameters = [];
+
+			$conditions = $bind = [];
+
+			$conditions[] = "keyword = :keyword:";
+			$bind['keyword'] = $keyword;
+
+			if (!isset($searchParam['_all_status'])){
+				$conditions[] = "status = :status:";
+				$bind['status'] = self::STATUS_NORMAL_VIDEO;
+			}
+
+			$parameters['conditions'] = implode(" AND ", $conditions);
+			$parameters['bind'] = $bind;
+			$parameters['columns'] = (is_null($searchParam['_fetch_all'])) ? self::FETCH_NOT_ALL_FIELDS : self::FETCH_ALL_FIELDS;
+
+			$videos = Videos::find($parameters);
+
+			if (!$videos) {
+				return [];
+			}
+
+			return $videos->toArray();
+
+		} catch (\PDOException $e) {
+			throw new ServiceException($e->getMessage(), $e->getCode(), $e);
+		}
+	}
+
 	/**
 	 * Getting video by param
 	 *
@@ -206,6 +298,7 @@ class VideosService extends AbstractService{
 	 * Param description 		: search by contain
 	 * Param source_video_id	: search by equal
 	 * Param status 			: search by equal
+	 * Param keyword 			: search by contain
 	 * Param _all_status 		: ignore status
 	 * Param _page 				: select by page number
 	 * Param _size				: select by count
@@ -254,6 +347,21 @@ class VideosService extends AbstractService{
 				$bind['source_full_url'] = $searchParam['source_full_url'];
 			}
 
+			if (!(is_null($searchParam['keyword']))){
+				$conditions[] = "keyword LIKE :keyword:";
+				$bind['keyword'] = '%' . $searchParam['keyword'] . '%';
+			}
+
+			if (!(is_null($searchParam['lengthgreaterthan']))){
+				$conditions[] = "length > :lengthgreaterthan:";
+				$bind['lengthgreaterthan'] = $searchParam['lengthgreaterthan'];
+			}
+
+			if (!(is_null($searchParam['lengthlessthan']))){
+				$conditions[] = "length < :lengthlessthan:";
+				$bind['lengthlessthan'] = $searchParam['lengthlessthan'];
+			}
+
 			if (is_null($searchParam['_all_status'])){
 				if (!(is_null($searchParam['status']))){
 					$conditions[] = "status = :status:";
@@ -267,7 +375,7 @@ class VideosService extends AbstractService{
 			$parameters['conditions'] = implode(" AND ", $conditions);
 			$parameters['bind'] = $bind;
 
-			$parameters['columns'] = (is_null($searchParam['_fetch_all'])) ? "name, source_video, category, tag, description, source_video_id, source_full_url" : "name, source_video, category, tag, description, source_video_id, source_full_url, status, _id, _created_at, _updated_at";
+			$parameters['columns'] = (is_null($searchParam['_fetch_all'])) ? self::FETCH_NOT_ALL_FIELDS : self::FETCH_ALL_FIELDS;
 
 			$parameters['order'] = '_updated_at DESC';
 
@@ -289,7 +397,6 @@ class VideosService extends AbstractService{
 
 			return $videos->toArray();
 		} catch (\PDOException $e) {
-			print_r($e->getMessage());
 			throw new ServiceException($e->getMessage(), $e->getCode(), $e);
 		}
 	}

@@ -24,13 +24,10 @@ try {
 	// Setting up routing
 	require __DIR__ . '/../app/config/routes.php';
 
-	$logger->info(sprintf("CLIENT --- %s
-					ROUTE --- %s
-					METHOD --- %s
-					HTTP REF --- %s",
+	$logger->info(sprintf("CLIENT --- [%s] [%s] [%s] Ref [%s]",
         $app->request->getClientAddress(),
-        $app->request->getURI(),
         $app->request->getMethod(),
+        $app->request->getURI(),
         $app->request->getHTTPReferer()
     ));
 
