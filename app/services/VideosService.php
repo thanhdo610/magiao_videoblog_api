@@ -54,8 +54,8 @@ class VideosService extends AbstractService{
 	/** Video not exists */
 	const ERROR_NOT_EXISTS = 11007;
 
-	const FETCH_NOT_ALL_FIELDS = "name, source_video, category, tag, description, source_video_id, source_full_url, keyword, length";
-	const FETCH_ALL_FIELDS = "name, source_video, category, tag, description, source_video_id, source_full_url, keyword, length, status, _id, _created_at, _updated_at";
+	const FETCH_NOT_ALL_FIELDS = "name, source_video, category, tag, description, source_video_id, source_full_url, keyword, length, published_at";
+	const FETCH_ALL_FIELDS = "name, source_video, category, tag, description, source_video_id, source_full_url, keyword, length, published_at, status, _id, _created_at, _updated_at";
 
 	/**
 	* Creating a new video
@@ -77,6 +77,7 @@ class VideosService extends AbstractService{
 			$videoData['keyword'] 			= (is_null($videoData['keyword'])) ? "-" : $videoData['keyword'];
 			$videoData['length'] 			= (is_null($videoData['keyword'])) ? 200 : $videoData['length'];
 			$videoData['status'] 			= (is_null($videoData['status'])) ? self::STATUS_NORMAL_VIDEO : $videoData['status'];
+			$videoData['published_at'] 			= (is_null($videoData['published_at'])) ? date('Y-m-d H:i:s') : $videoData['published_at'];
 
 			$result = $video->setId($_id)
 				->setName($videoData['name'])
@@ -89,6 +90,7 @@ class VideosService extends AbstractService{
 				->setKeyword($videoData['keyword'])
 				->setLength($videoData['length'])
 				->setStatus($videoData['status'])
+				->setPublishedAt($videoData['published_at'])
 				->create();
 
 			if (!$result) {
@@ -133,6 +135,7 @@ class VideosService extends AbstractService{
 			if (!is_null($videoData['keyword'])) $video->setKeyword($videoData['keyword']);
 			if (!is_null($videoData['length'])) $video->setLength($videoData['length']);
 			if (!is_null($videoData['status'])) $video->setStatus($videoData['status']);
+			if (!is_null($videoData['published_at'])) $video->setPublishedAt($videoData['published_at']);
 
 			$result = $video->update();
 
@@ -261,8 +264,8 @@ class VideosService extends AbstractService{
 
 			$conditions = $bind = [];
 
-			$conditions[] = "keyword = :keyword:";
-			$bind['keyword'] = $keyword;
+			$conditions[] = "keyword IN ('".implode("','", explode(",", $keyword))."')";
+			$bind['keyword'] = "(" . $keyword  . ")";
 
 			if (!isset($searchParam['_all_status'])){
 				$conditions[] = "status = :status:";
@@ -348,8 +351,8 @@ class VideosService extends AbstractService{
 			}
 
 			if (!(is_null($searchParam['keyword']))){
-				$conditions[] = "keyword LIKE :keyword:";
-				$bind['keyword'] = '%' . $searchParam['keyword'] . '%';
+				$conditions[] = "keyword IN ('".implode("','", explode(",", $searchParam['keyword']))."')";
+				// $bind['keyword'] = implode("','", explode(",", $searchParam['keyword']));
 			}
 
 			if (!(is_null($searchParam['lengthgreaterthan']))){
@@ -377,7 +380,7 @@ class VideosService extends AbstractService{
 
 			$parameters['columns'] = (is_null($searchParam['_fetch_all'])) ? self::FETCH_NOT_ALL_FIELDS : self::FETCH_ALL_FIELDS;
 
-			$parameters['order'] = '_updated_at DESC';
+			$parameters['order'] = 'published_at DESC';
 
 			$_size = 10;
 			if (!(is_null($searchParam['_size']))){

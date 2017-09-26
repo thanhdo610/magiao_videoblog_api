@@ -86,16 +86,23 @@ class Videos extends \Phalcon\Mvc\Model
     /**
      *
      * @var string
-     * @Column(type="string", nullable=false)
+     * @Column(type="timestamp", nullable=false)
      */
     protected $_created_at;
 
     /**
      *
      * @var string
-     * @Column(type="string", nullable=false)
+     * @Column(type="timestamp", nullable=false)
      */
     protected $_updated_at;
+
+    /**
+     *
+     * @var string
+     * @Column(type="datetime", nullable=false)
+     */
+    protected $published_at;
 
     /**
      * Method to set the value of field name
@@ -267,6 +274,19 @@ class Videos extends \Phalcon\Mvc\Model
     }
 
     /**
+     * Method to set the value of field published_at
+     *
+     * @param string $published_at
+     * @return $this
+     */
+    public function setPublishedAt($published_at)
+    {
+        $this->published_at = $published_at;
+
+        return $this;
+    }
+
+    /**
      * Returns the value of field name
      *
      * @return string
@@ -394,6 +414,16 @@ class Videos extends \Phalcon\Mvc\Model
     public function getUpdatedAt()
     {
         return $this->_updated_at;
+    }
+
+    /**
+     * Returns the value of field published_at
+     *
+     * @return string
+     */
+    public function getPublishedAt()
+    {
+        return $this->published_at;
     }
 
     /**
