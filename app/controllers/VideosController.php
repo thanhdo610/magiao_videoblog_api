@@ -120,6 +120,7 @@ class VideosController extends AbstractController
         $data['keyword'] = $this->request->getPost('keyword', 'string');
         $data['length'] = $this->request->getPost('length', 'int');
         $data['status'] = $this->request->getPost('status', 'int', 20000, true);
+        $data['published_at'] = $this->request->getPost('published_at');
 
         try {
             return $videosService->saveVideo($id, $data);
@@ -158,6 +159,7 @@ class VideosController extends AbstractController
         $data['keyword'] = $this->request->getPost('keyword', 'string');
         $data['length'] = $this->request->getPost('length', 'int');
         $data['status'] = $this->request->getPost('status', 'int');
+        $data['published_at'] = $this->request->getPost('published_at');
 
         try {
             return $videosService->updateVideo($id, $data);
