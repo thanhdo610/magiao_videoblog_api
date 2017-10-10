@@ -75,7 +75,7 @@ class VideosService extends AbstractService{
 			$videoData['source_video_id'] 	= (is_null($videoData['source_video_id'])) ? "-" : $videoData['source_video_id'];
 			$videoData['source_full_url'] 	= (is_null($videoData['source_full_url'])) ? "-" : $videoData['source_full_url'];
 			$videoData['keyword'] 			= (is_null($videoData['keyword'])) ? "-" : $videoData['keyword'];
-			$videoData['length'] 			= (is_null($videoData['keyword'])) ? 200 : $videoData['length'];
+			$videoData['length'] 			= (is_null($videoData['length'])) ? 200 : $videoData['length'];
 			$videoData['status'] 			= (is_null($videoData['status'])) ? self::STATUS_NORMAL_VIDEO : $videoData['status'];
 			$videoData['published_at'] 			= (is_null($videoData['published_at'])) ? date('Y-m-d H:i:s') : $videoData['published_at'];
 
@@ -94,7 +94,7 @@ class VideosService extends AbstractService{
 				->create();
 
 			if (!$result) {
-				throw new ServiceException('Unable to create video', self::ERROR_UNABLE_CREATE_VIDEO);
+				throw new ServiceException('Unable to create video' . $_id, self::ERROR_UNABLE_CREATE_VIDEO);
 			} else {
 				return self::getVideoById($_id);
 			}
